@@ -31,12 +31,11 @@ else:
         curve[i + minGpuTemp] = math.ceil((i * i) / dividend) + minFanSpeed
 
 # Print Curve
-print("Custom Fan Curve")
-print("0 - %d " % minGpuTemp, "%d" % minFanSpeed)
-for i in range(minGpuTemp+1, maxGpuTemp):
-    print(i, curve[i])
-print("%d - up " % maxGpuTemp, "%d" % maxFanSpeed)
-
+# print("Custom Fan Curve")
+# print("0 - %d " % minGpuTemp, "%d" % minFanSpeed)
+# for i in range(minGpuTemp+1, maxGpuTemp):
+#     print(i, curve[i])
+# print("%d - up " % maxGpuTemp, "%d" % maxFanSpeed)
 
 # get GPU identities (currently for one GPU)
 # TODO - multi-GPU support
