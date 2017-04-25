@@ -13,7 +13,7 @@ maxFanSpeed = 100
 # temp that fan starts to ramp up from minimum
 minGpuTemp = 50
 # temp where fan = maxFanSpeed
-maxGpuTemp = 85
+maxGpuTemp = 80
 # curveStyle = 0 is linear, curveStyle = 1 is exponential
 curveStyle = 0
 
