@@ -33,7 +33,7 @@ else:
 # Print Curve
 print("Custom Fan Curve")
 print("0 - %d " % minGpuTemp, "%d" % minFanSpeed)
-for i in range(minGpuTemp, maxGpuTemp):
+for i in range(minGpuTemp+1, maxGpuTemp):
     print(i, curve[i])
 print("%d - up " % maxGpuTemp, "%d" % maxFanSpeed)
 
