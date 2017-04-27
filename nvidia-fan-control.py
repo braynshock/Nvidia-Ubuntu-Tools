@@ -16,8 +16,10 @@ minGpuTemp = 50
 maxGpuTemp = 80
 # curveStyle = 0 is linear, curveStyle = 1 is exponential
 curveStyle = 0
+# Polling offset in seconds (anything longer than 10 seconds could be bad)
+pollOffset = 1
 
-# create curve
+# create curve hashmap
 curve = {}
 deltaSpeed = maxFanSpeed - minFanSpeed
 deltaTemp = maxGpuTemp - minGpuTemp
@@ -37,23 +39,32 @@ else:
 #     print(i, curve[i])
 # print("%d - up " % maxGpuTemp, "%d" % maxFanSpeed)
 
+# Error detection variable
+err = ""
+
 # get GPU identities (currently for one GPU)
 # TODO - multi-GPU support
-gpu = subprocess.Popen(["nvidia-smi","-L"], stdout=subprocess.PIPE).communicate()[0].decode('ascii')[4:5]
+gpuGet = subprocess.Popen(["nvidia-smi", "-L"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+gpu = int(gpuGet[0].decode('ascii')[4:5])
+err = err + gpuGet[1].decode('ascii')
 print("FanControl Service started for [gpu:%s]" % gpu)
 
+# Enable manual fan control
+manualFanSet = subprocess.Popen(["nvidia-settings", "-a", "[gpu:%d]/GPUFanControlState=1" % gpu],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+err = err + manualFanSet[1].decode('ascii')
+
 # service setup
-err = ""
 while err == "":
     # get current temp of GPU
     # TODO multi-fan support
     getTemp = subprocess.Popen(["nvidia-settings", "-t", "-q", "[gpu:%s]/GPUCoreTemp" % gpu],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     temp = int(getTemp[0].decode('ascii'))
-    err = getTemp[1].decode('ascii')
+    err = err + getTemp[1].decode('ascii')
     # print("temp = %d" % temp)
 
-    # calculate fan speed
+    # get setting for fan speed from temp || curve hashmap
     speed = minFanSpeed
     if temp <= minGpuTemp:
         speed = minFanSpeed
@@ -64,14 +75,14 @@ while err == "":
             speed = curve[temp]
 
     # set GPU Fan Speed
-    setSpeed = subprocess.Popen(["nvidia-settings","-a","[fan:0]/GPUTargetFanSpeed=%d" % speed],
+    setSpeed = subprocess.Popen(["nvidia-settings", "-a", "[fan:0]/GPUTargetFanSpeed=%d" % speed],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     out = setSpeed[0].decode('ascii')
-    err = setSpeed[1].decode('ascii')
+    err = err + setSpeed[1].decode('ascii')
 
     # print("output: ", out, "speed = %d" % speed)
 
     # wait 1 second before polling again
-    time.sleep(1)
+    time.sleep(pollOffset)
 
 print("Error code stopped GPU-FanControl service\n", err)
